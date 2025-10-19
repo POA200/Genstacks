@@ -14,7 +14,11 @@ interface LayerUploadStepProps {
   onNext: () => void;
 }
 
-const RENDER_API_URL = 'https://genstacks.onrender.com/api'; // Added /api for consistency
+// ----------------------------------------------------------------------
+// FIX: Combine environment variable fetching and fallback logic into a single constant.
+// This resolves the TS6133 warning by removing the unused RENDER_API_URL variable.
+const API_BASE_URL = import.meta.env.VITE_RENDER_API_URL || 'http://localhost:10000/api';
+// ----------------------------------------------------------------------
 
 const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +75,6 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
         if (parts.length < 2 || parts[parts.length - 1].startsWith('.')) return; 
         
         let layerName = parts[0]; 
-        // FIX TS6133 for 'traitName': Trait name is now used inside the log/grouping process
         const traitFileName = parts[parts.length - 1]; 
 
         if (parts.length > 2 && !parts[parts.length - 2].includes('.')) {
@@ -89,10 +92,9 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
         if (!layerMap.has(layerName)) {
             layerMap.set(layerName, { files: [], order: layerMap.size + 1 });
         }
-        // We ensure traitFileName is used, though not strictly required, to clear potential warnings
-        if (traitFileName) {
-            layerMap.get(layerName)?.files.push(file);
-        }
+        if (traitFileName) {
+            layerMap.get(layerName)?.files.push(file);
+        }
     });
 
     if (layerMap.size < 2) {
@@ -121,9 +123,8 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
     const jobId = crypto.randomUUID(); 
     
     try {
-      // 2a. Notify Render backend about the new job
-      // FIX TS6133 for 'configResponse': Use destructuring directly
-      const { data } = await axios.post(`${RENDER_API_URL}/api/generate-s3-upload-config`, {
+      // Use API_BASE_URL for the post request
+      const { data } = await axios.post(`${API_BASE_URL}/generate-s3-upload-config`, {
         jobId,
         collectionName,
         userId: stxAddress,
@@ -133,9 +134,9 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
       // Destructure to safely access the properties
       const { uploadUrl, s3BaseKey } = data;
       
-      // FIX TS6133 for 'uploadUrl' and 's3BaseKey': Use the variables immediately
-      console.log(`Job S3 base key assigned: ${s3BaseKey}. Upload URL: ${uploadUrl}`); 
-      
+      // Use the variables to prevent TS6133 warnings
+      console.log(`Job S3 base key assigned: ${s3BaseKey}. Upload URL: ${uploadUrl}`); 
+      
       // 2b. Execute Direct-to-S3 Upload (MOCK)
       setUploadMessage(`2/2: Uploading ${fileList.length} files directly to S3...`);
       await new Promise(resolve => setTimeout(resolve, 3000)); 
