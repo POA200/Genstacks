@@ -38,10 +38,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-8">
       <header className="flex justify-between items-center pb-4 border-b">
-        <h2 className="text-3xl font-bold">Welcome, Creator!</h2>
+        <h2 className="text-2xl font-lg">GENSTACKS</h2>
         <div className="flex items-center space-x-4">
           <span className="text-gray-500 truncate">
-            Wallet: **{stxAddress.substring(0, 6)}...{stxAddress.slice(-4)}**
+            {stxAddress.substring(0, 5)}...{stxAddress.slice(-4)}**
           </span>
           <Button variant="outline" onClick={logout}>Sign Out</Button>
         </div>
@@ -52,9 +52,9 @@ const Dashboard: React.FC = () => {
         <Button 
           size="lg" 
           onClick={() => setIsGenerating(true)} 
-          className="px-10 py-6 bg-green-500 hover:bg-green-600 text-white"
+          className="cursor-pointer rounded-lg"
         >
-          Get Started: Define Collection Parameters →
+          Get Started →
         </Button>
       </div>
     </div>
