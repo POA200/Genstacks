@@ -1,7 +1,7 @@
 // /packages/server/src/index.ts
 
 import express, { Request, Response } from 'express';
-import cors from 'cors';
+import { CorsOptions, CustomOrigin, CorsOptionsDelegate } from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid'; // Need to install 'uuid' if you haven't yet
 
@@ -21,7 +21,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (e.g., direct API testing)
     if (!origin) return callback(null, true); 
     if (allowedOrigins.indexOf(origin) === -1) {
