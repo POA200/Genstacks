@@ -16,7 +16,7 @@ app.use(express.json());
 
 // --- CRITICAL CORS CONFIGURATION ---
 const allowedOrigins = [
-  'http://localhost:5173', // VITE dev server - MUST be included!
+  'https://genstacks.vercel.app', // VITE dev server - MUST be included!
   // Add your Vercel deployment URL here later: 'https://your-live-vercel-domain.vercel.app', 
 ];
 
