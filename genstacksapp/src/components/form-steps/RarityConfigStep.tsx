@@ -14,7 +14,7 @@ interface RarityConfigStepProps {
 
 const RarityConfigStep: React.FC<RarityConfigStepProps> = ({ onNext }) => {
   // Get global state and actions
-  const { layers, updateTraitRarity, setRarityConfigured } = useCollectionConfigStore();
+  const { layers, updateTraitRarity } = useCollectionConfigStore();
   
   // Local state to track errors and input changes
   const [errors, setErrors] = useState<Record<string, string | null>>({});
@@ -44,9 +44,7 @@ const RarityConfigStep: React.FC<RarityConfigStepProps> = ({ onNext }) => {
 
     setErrors(newErrors);
     setCanProceed(allValid);
-    // Update the global store's readiness status
-    setRarityConfigured(allValid); 
-  }, [localLayers, setRarityConfigured]);
+  }, [localLayers]);
 
   // --- INPUT CHANGE HANDLER ---
   const handleRarityChange = (layerId: string, traitName: string, value: string) => {

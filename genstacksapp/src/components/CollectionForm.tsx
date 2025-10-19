@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import BasicInfoStep from '@/components/form-steps/BasicInfoStep'; 
 import LayerUploadStep from '@/components/form-steps/LayerUploadStep'; // <-- IMPORTED
+import RarityConfigStep from '@/components/form-steps/RarityConfigStep'; 
 import { useCollectionConfigStore } from '@/store/configStore';
 
 interface CollectionFormProps {
@@ -31,7 +32,7 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onCancel }) => {
         return <LayerUploadStep onNext={nextStep} />; 
       case 3:
         // Step 3: Rarity Configuration (WIP)
-        return <div>Step 3: Rarity Configuration (WIP)</div>;
+        return <RarityConfigStep onNext={nextStep} />;
       case 4:
         // Step 4: Preview & Payment (WIP)
         return <div>Step 4: Preview & Payment (WIP)</div>;
