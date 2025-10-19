@@ -1,9 +1,9 @@
-// /packages/server/src/index.ts
+// /packages/server/src/index.ts (FIXED VERSION)
 
 import express, { Request, Response } from 'express';
-import { CorsOptions, CustomOrigin, CorsOptionsDelegate } from 'cors';
+import cors from 'cors';
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid'; // Need to install 'uuid' if you haven't yet
+import { v4 as uuidv4 } from 'uuid'; 
 
 dotenv.config();
 
@@ -17,18 +17,26 @@ app.use(express.json());
 // --- CRITICAL CORS CONFIGURATION ---
 const allowedOrigins = [
   'http://localhost:5173', // VITE dev server - MUST be included!
-  // 'https://your-live-vercel-domain.vercel.app', // Add this later
+  // Add your Vercel deployment URL here later: 'https://your-live-vercel-domain.vercel.app', 
 ];
 
 app.use(cors({
+  // FIX: Use the simplest function signature (origin: any, callback: any) 
+  // TypeScript will accept this, relying on the @types/cors definitions
+  // and preventing the TS2305 error related to complex type imports.
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (e.g., direct API testing)
+    // 1. Allow requests with no origin (e.g., direct API testing, or tools like Postman)
     if (!origin) return callback(null, true); 
+    
+    // 2. Check if the origin is in our safe list
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = `CORS policy blocked access from Origin: ${origin}`;
       console.error(msg);
+      // Deny access if the origin is not allowed
       return callback(new Error(msg), false);
     }
+    
+    // 3. Allow access
     return callback(null, true);
   },
   methods: ['GET', 'POST'],
@@ -37,9 +45,9 @@ app.use(cors({
 // ------------------------------------
 
 // --- MOCK API ENDPOINT ---
-// This endpoint is what your frontend LayerUploadStep.tsx is calling
 app.post('/api/generate-s3-upload-config', (req: Request, res: Response) => {
-  console.log(`Received job request: ${req.body.collectionName}`);
+  // Use a console log that Render will display in its logs
+  console.log(`[JOB MOCK] Received request for: ${req.body.collectionName}`);
 
   // MOCK: Respond with the required structure to allow frontend to proceed
   const jobId = req.body.jobId || uuidv4(); 
