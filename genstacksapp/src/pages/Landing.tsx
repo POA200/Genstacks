@@ -9,10 +9,13 @@ const Landing: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <h1 className="text-4xl font-extrabold text-primary-600 mb-4">
-        NFT Collection Generator dApp
+      <h1 className="text-6xl font-extrabold text-primary">
+        GENSTACKS
       </h1>
-      <p className="text-xl text-gray-600 mb-8">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        NFT Collection Generator
+      </h2>
+      <p className="text-md text-gray-600 mb-2">
         Connect your wallet to get started.
       </p>
       <Button 
