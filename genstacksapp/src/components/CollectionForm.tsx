@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import BasicInfoStep from '@/components/form-steps/BasicInfoStep'; 
-import LayerUploadStep from '@/components/form-steps/LayerUploadStep'; // <-- IMPORTED
+import LayerUploadStep from '@/components/form-steps/LayerUploadStep';
 import RarityConfigStep from '@/components/form-steps/RarityConfigStep'; 
+import GenerationStatusStep from '@/components/form-steps/GenerationStatusStep';
 import { useCollectionConfigStore } from '@/store/configStore';
 
 interface CollectionFormProps {
@@ -35,7 +36,7 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onCancel }) => {
         return <RarityConfigStep onNext={nextStep} />;
       case 4:
         // Step 4: Preview & Payment (WIP)
-        return <div>Step 4: Preview & Payment (WIP)</div>;
+        return <GenerationStatusStep onCancel={onCancel} />;
       default:
         return <div>Unknown Step</div>;
     }
@@ -43,10 +44,7 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onCancel }) => {
 
   // Functionality for the Finalize & Generate button click
   const handleFinalize = () => {
-      // TODO: This function will trigger the final Render API call to start the generation worker thread.
-      console.log('--- FINALIZING GENERATION JOB ---');
-      console.log('Sending job to Render backend...');
-      // Placeholder for actual API call
+    nextStep();
   };
 
   return (
