@@ -115,7 +115,7 @@ app.post('/api/start-generation', async (req: Request, res: Response) => {
         const job: Job = updateResult.rows[0];
 
         // Launch the Worker Thread for heavy computation
-        const worker = new Worker(path.resolve(__dirname, 'worker/generator.js'), {
+        const worker = new Worker(path.join(__dirname, 'worker', 'generator.js'), {
             workerData: { jobId: job.id, jobData: job }
         });
         
