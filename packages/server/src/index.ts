@@ -1,244 +1,245 @@
-// /packages/server/src/index.ts (FINAL, CLEANED BACKEND API ENDPOINTS)
+// /genstacks/genstacksapp/src/components/form-steps/GenerationStatusStep.tsx (FINAL STABLE VERSION)
 
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid'; 
-import pool, { setupDatabase, Job } from './db'; 
-import { Worker } from 'worker_threads'; 
-import path from 'path'; 
-import { QueryResult } from 'pg'; 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useCollectionConfigStore } from '@/store/configStore';
+import { useAuthStore } from '@/store/authStore';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { Loader2, CheckCircle, XCircle, DollarSign } from 'lucide-react';
+import { request, AnchorMode } from '@stacks/connect'; 
 
-dotenv.config();
+// FIX 1: Import only the network constructor class
+import { StacksTestnet } from '@stacks/network'; 
 
-const app = express();
-const PORT = process.env.PORT || 10000; 
-
-// --- Stacks API Configuration ---
-// Base URL for the Hiro API (Testnet recommended for dev)
-const HIRO_API_BASE_URL = process.env.STACKS_API_URL || 'https://api.testnet.hiro.so'; 
-const HIRO_API_KEY = process.env.HIRO_API_KEY; 
-
-// Middleware Setup
-app.use(express.json());
-
-// --- CRITICAL CORS CONFIGURATION ---
-const allowedOrigins = [ 'http://localhost:5173' ]; 
-
-app.use(cors({
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin) return callback(null, true); 
-    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com');
-    if (!isAllowed) {
-      const msg = `CORS policy blocked access from Origin: ${origin}`;
-      console.error(msg);
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ['GET', 'POST'],
-  credentials: true,
-}));
-
-// --- API Helper Function (Cleanest REST Call) ---
-type StacksTransaction = {
-    tx_status?: string;
-    [key: string]: any;
-};
-
-const fetchStacksTransaction = async (txId: string): Promise<StacksTransaction> => {
-    const headers: Record<string, string> = {
-        'Accept': 'application/json',
-    };
-    if (HIRO_API_KEY) {
-        headers['x-api-key'] = HIRO_API_KEY;
-    }
-    
-    // Direct call to the V2 transactions endpoint
-    const url = `${HIRO_API_BASE_URL}/v2/transactions/${txId}`;
-    
-    // Use the generic response, casting to a known shape so callers don't get `unknown`
-    const response = await axios.get(url, { headers });
-    return response.data as StacksTransaction;
-};
-// ----------------------------------------------------
-
-// --- MOCK /api/generate-s3-upload-config (Frontend Step 2) ---
-app.post('/api/generate-s3-upload-config', async (req: Request, res: Response) => {
-  const { jobId, collectionName, userId } = req.body;
-  if (!jobId || !userId) {
-     return res.status(400).json({ message: 'Missing job ID or user ID.' });
-  }
-
-  // MOCK: Save initial job status in DB
-  const s3Path = `s3://mock-bucket/jobs/${jobId}`;
-  try {
-      await pool.query(
-          `INSERT INTO jobs (id, user_address, collection_name, supply, rarity_config, s3_upload_path, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
-           ON CONFLICT (id) DO UPDATE SET user_address = $2, collection_name = $3, updated_at = NOW()`,
-          [jobId, userId, collectionName || 'Untitled', 0, JSON.stringify({}), s3Path, 'UNKNOWN']
-      );
-  } catch (e) {
-      console.error("DB INSERT FAILED during config:", e);
-  }
-
-  res.status(200).json({
-    message: 'S3 config generated successfully (MOCK).',
-    jobId: jobId,
-    uploadUrl: 'https://mock-s3-upload-url.com/path', 
-    s3BaseKey: s3Path,
-  });
-});
+// FIX 2: Import the core namespaces and types
+import type { ClarityValue } from '@stacks/transactions'; 
+import { 
+    Cl, // Clarity Value Constructor (Cl.stringAscii, Cl.uint, etc.)
+    Pc, // PostCondition Builder (Pc.principal().willSendEq().ustx())
+    PostConditionMode, 
+} from '@stacks/transactions'; 
 
 
-// --- 1. POST /api/start-generation (Job Trigger) ---
-app.post('/api/start-generation', async (req: Request, res: Response) => {
-    const { jobId, collectionName, supply, layers, stxAddress } = req.body;
-    
-    if (!jobId || !stxAddress || !supply || !layers) {
-        return res.status(400).json({ status: 'error', message: 'Missing required configuration data.' });
-    }
+interface GenerationStatusStepProps {
+  onCancel: () => void;
+}
 
-    try {
-        const updateResult: QueryResult<Job> = await pool.query(
-            `UPDATE jobs SET rarity_config = $1, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
-             WHERE id = $4 RETURNING *`,
-            [JSON.stringify(layers), supply, collectionName, jobId]
-        );
-        
-        if (updateResult.rows.length === 0) {
-            return res.status(404).json({ status: 'error', message: 'Job not found for update.' });
-        }
-        
-        const job: Job = updateResult.rows[0];
+// Environment Variables
+const RENDER_ENV_URL = import.meta.env.VITE_RENDER_API_URL;
+const API_BASE_URL = RENDER_ENV_URL || 'http://localhost:10000/api'; 
 
-        // Launch the Worker Thread for heavy computation
-        const worker = new Worker(path.join(__dirname, 'worker', 'generator.js'), {
-            workerData: { jobId: job.id, jobData: job }
-        });
-        
-        worker.on('error', (err) => { console.error(`Worker error for ${job.id}:`, err); });
-        worker.on('exit', (code) => { 
-            if (code !== 0) console.error(`Worker stopped for ${job.id} with exit code ${code}`); 
+// Stacks Constants
+const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
+const FEE_CONTRACT_ID = 'SP2BWNDQ6FFHCRGRP1VCAXHSMYTDY8J8T075AZV4Q.nft-fee-collector'; 
+
+type JobStatus = 'QUEUED' | 'GENERATING' | 'COMPLETE' | 'PAID' | 'FAILED' | 'UNKNOWN';
+
+const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel }) => {
+  const { collectionName, supply, layers } = useCollectionConfigStore();
+  const stxAddress = useAuthStore(state => state.userAddresses?.stxAddress);
+
+  // FIX: Create network instance here to avoid import issues
+  const stacksNetwork = new StacksTestnet();
+
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [status, setStatus] = useState<JobStatus>('UNKNOWN');
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [downloadLink, setDownloadLink] = useState<string | null>(null);
+  const [txId, setTxId] = useState<string | null>(null);
+  
+  const pollInterval = useRef<NodeJS.Timeout | null>(null);
+  const isMounted = useRef(true); 
+
+  // --- 1. START GENERATION JOB ---
+  useEffect(() => {
+    isMounted.current = true;
+    if (status !== 'UNKNOWN' && status !== 'FAILED') return; 
+
+    const startJob = async () => {
+      const newJobId = crypto.randomUUID(); 
+      setJobId(newJobId);
+      setStatus('QUEUED');
+      
+      try {
+        const response = await axios.post(`${API_BASE_URL}/start-generation`, {
+          jobId: newJobId,
+          collectionName,
+          supply,
+          layers,
+          stxAddress,
         });
 
-        // Return immediately (non-blocking)
-        return res.status(202).json({ 
-            status: 'QUEUED', 
-            jobId: job.id, 
-            message: 'Generation job started successfully in background.' 
-        });
-
-    } catch (e) {
-        console.error('Database/Job queuing error:', e);
-        return res.status(500).json({ status: 'error', message: 'Failed to queue generation job.' });
-    }
-});
-
-// --- 2. GET /api/job-status/:id (Status Polling) ---
-app.get('/api/job-status/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        const result: QueryResult<Job> = await pool.query(
-            'SELECT id, status, s3_final_zip_path FROM jobs WHERE id = $1',
-            [id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ status: 'UNKNOWN', message: 'Job not found.' });
-        }
-        
-        const job = result.rows[0];
-        
-        let finalZipUrl = null;
-        if (job.status === 'COMPLETE' || job.status === 'PAID') {
-            finalZipUrl = `https://mock-s3-download-link.com/${job.s3_final_zip_path || 'default_path'}`; 
-        }
-
-        return res.status(200).json({ 
-            status: job.status, 
-            jobId: job.id,
-            finalZipUrl: finalZipUrl
-        });
-
-    } catch (e) {
-        console.error('Job status query error:', e);
-        return res.status(500).json({ status: 'error', message: 'Database error.' });
-    }
-});
-
-// --- 3. POST /api/verify-payment (Unlock Download) ---
-app.post('/api/verify-payment', async (req: Request, res: Response) => {
-    const { jobId, txId, stxAddress } = req.body;
-    
-    if (!jobId || !txId || !stxAddress) {
-        return res.status(400).json({ status: 'error', message: 'Missing transaction details.' });
-    }
-
-    try {
-        // Step A: Fetch transaction details from the Stacks API
-        const txResult = await fetchStacksTransaction(txId);
-
-        // Check 1: Final Transaction Status
-        if (txResult.tx_status !== 'success') {
-            return res.status(400).json({ status: 'error', message: 'Stacks transaction did not succeed.' });
-        }
-
-        // Check 2: MOCK SECURITY CHECK (The only reliable method without deep type parsing)
-        // Since deep event parsing is unreliable, we rely on the tx_status=success for MOCK verification.
-        const paymentVerified = true; 
-
-        if (paymentVerified) {
-            // Update DB status to PAID and save the transaction hash
-            await pool.query(
-                `UPDATE jobs SET status = 'PAID', tx_id_unlock = $1, updated_at = NOW() WHERE id = $2`,
-                [txId, jobId]
-            );
-
-            // Fetch the final download path from the updated job
-            const jobResult: QueryResult<Job> = await pool.query('SELECT s3_final_zip_path FROM jobs WHERE id = $1', [jobId]);
-            const finalPath = jobResult.rows[0]?.s3_final_zip_path;
-            
-            // NOTE: This is where you'd generate the S3 Pre-Signed GET URL for the client.
-            const mockDownloadLink = `https://unlocked-download.com/job/${jobId}/final.zip`;
-            
-            return res.status(200).json({ 
-                status: 'PAID', 
-                downloadLink: mockDownloadLink, 
-                message: 'Payment verified and download link unlocked.' 
-            });
+        if (response.data.status === 'QUEUED') {
+          console.log(`Job ${newJobId} successfully queued on Render.`);
+          startPolling(newJobId); 
         } else {
-            return res.status(400).json({ status: 'error', message: 'Clarity event verification failed.' });
+            setStatus('FAILED');
+            setGenerationError('Failed to queue job on backend.');
         }
-    } catch (e) {
-        console.error('Payment verification API error:', e);
-        return res.status(500).json({ status: 'error', message: 'Failed to verify payment via Stacks API. Check Hiro API key/rate limits.' });
+
+      } catch (error) {
+        if (isMounted.current) {
+            setStatus('FAILED');
+            setGenerationError('Error starting generation job. Check backend logs.');
+            console.error('Job start error:', error);
+        }
+      }
+    };
+
+    startJob();
+
+    return () => {
+      isMounted.current = false;
+      if (pollInterval.current) clearInterval(pollInterval.current);
+    };
+  }, [stxAddress]); 
+
+  // --- 2. POLLING LOGIC ---
+  const startPolling = (currentJobId: string) => {
+    if (pollInterval.current) clearInterval(pollInterval.current);
+
+    pollInterval.current = setInterval(async () => {
+      if (!isMounted.current) return;
+      
+      try {
+        const response = await axios.get(`${API_BASE_URL}/job-status/${currentJobId}`);
+        const newStatus = response.data.status as JobStatus;
+        
+        if (newStatus !== status) {
+            setStatus(newStatus);
+            console.log(`Job ${currentJobId} status updated to: ${newStatus}`);
+        }
+
+        if (newStatus === 'COMPLETE' || newStatus === 'PAID' || newStatus === 'FAILED') {
+          if (pollInterval.current) clearInterval(pollInterval.current);
+          setDownloadLink(response.data.finalZipUrl); 
+          if (newStatus === 'FAILED') {
+            setGenerationError('Generation failed on the server.');
+          }
+        }
+      } catch (error) {
+        if (isMounted.current) {
+            console.error('Polling error:', error);
+        }
+      }
+    }, 5000);
+  };
+  
+  // --- 3. PAYMENT TRANSACTION LOGIC (Stacks.js) ---
+  const handlePayment = async () => {
+    if (!stxAddress || !jobId) {
+        setGenerationError("Wallet not connected or Job ID missing.");
+        return;
     }
-});
 
+    const [contractAddress, contractName] = FEE_CONTRACT_ID.split('.');
+    
+    // Construct the Post Condition using the 'Pc' namespace
+    const postCondition = Pc.principal(stxAddress)
+        .willSendEq(FEE_AMOUNT_USTX) 
+        .ustx(); 
 
-// Basic Health Check
-app.get('/api/health', (req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok', service: 'NFT Generator API', dbStatus: pool ? 'connected' : 'disconnected' });
-});
+    // Construct the Clarity function arguments using the 'Cl' namespace
+    const functionArgs: ClarityValue[] = [
+        Cl.stringAscii(jobId) 
+    ];
 
-
-// --- Server Start Function ---
-const startServer = async () => {
-    // 1. Initialize PostgreSQL connection and create table
     try {
-        await setupDatabase();
-    } catch (e) {
-        console.error("Server failed to connect to DB. Shutting down.", e);
-        return; 
-    }
+      const response = await request('stx_callContract', {
+          contract: `${contractAddress}.${contractName}`,
+          functionName: 'pay-for-collection',
+          functionArgs: functionArgs,
+          postConditions: [postCondition],
+          postConditionMode: PostConditionMode.Deny, 
+          network: 'testnet', // Use string literal for network, as it's the safest parameter here
+      });
+      
+      const txid = (response as {txid: string}).txid;
 
-    // 2. Start the Express server
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}. DB connected.`);
-    });
+      setTxId(txid);
+      setStatus('PAID');
+      
+      await axios.post(`${API_BASE_URL}/verify-payment`, {
+          jobId: jobId,
+          txId: txid,
+          stxAddress: stxAddress
+      });
+      startPolling(jobId);
+
+    } catch (error) {
+      console.error('Transaction failed or was cancelled:', error);
+      setStatus('COMPLETE'); 
+    }
+  };
+  
+  // --- RENDERING STATUS BADGE (Remains the same) ---
+  const StatusBadge = () => {
+    switch (status) {
+      case 'QUEUED':
+        return <span className="text-blue-500 flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Job Queued</span>;
+      case 'GENERATING':
+        return <span className="text-yellow-500 flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating {supply} NFTs...</span>;
+      case 'COMPLETE':
+        return <span className="text-green-500 flex items-center"><CheckCircle className="mr-2 h-4 w-4" /> Ready for Payment</span>;
+      case 'PAID':
+        return <span className="text-green-600 flex items-center"><CheckCircle className="mr-2 h-4 w-4" /> Payment Confirmed!</span>;
+      case 'FAILED':
+        return <span className="text-red-500 flex items-center"><XCircle className="mr-2 h-4 w-4" /> Job Failed</span>;
+      default:
+        return <span className="text-gray-500">Initializing...</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-6 p-4">
+      <CardHeader className="p-0 pb-4">
+        <CardTitle className="text-2xl">Generation Status: <StatusBadge /></CardTitle>
+        <CardDescription>
+          Processing **{collectionName}** ({supply} total) on the Render worker thread.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="p-0 space-y-4">
+        <div className="border p-4 rounded-md bg-gray-50">
+            <h4 className="font-semibold mb-2">Job Details</h4>
+            <p className="text-sm">Job ID: <code className="text-xs">{jobId || 'N/A'}</code></p>
+            {generationError && <p className="text-red-500 text-sm mt-2">Error: {generationError}</p>}
+        </div>
+
+        {/* --- PAYMENT UNLOCK SECTION --- */}
+        {(status === 'COMPLETE' || status === 'PAID') && (
+            <div className="border-t pt-4">
+                {status === 'COMPLETE' && (
+                    <div className="text-center space-y-4">
+                        <p className="text-xl font-bold text-green-700">Collection is Ready for Download!</p>
+                        <p>A fee of **50 STX** is required to unlock your final collection files (images and metadata).</p>
+                        <Button 
+                            onClick={handlePayment} 
+                            disabled={!stxAddress}
+                            size="lg" 
+                            className="bg-purple-600 hover:bg-purple-700"
+                        >
+                            <DollarSign className="mr-2 h-5 w-5" /> Pay 50 STX to Download
+                        </Button>
+                        {txId && <p className="text-xs text-gray-500 mt-2">Transaction broadcasted: {txId}</p>}
+                    </div>
+                )}
+                {status === 'PAID' && downloadLink && (
+                    <div className="text-center space-y-4">
+                        <p className="text-xl font-bold text-green-700">Payment Verified! Your files are unlocked.</p>
+                        <a href={downloadLink} target="_blank" rel="noopener noreferrer">
+                            <Button size="lg" className='bg-green-700 hover:bg-green-800'>
+                                Download Collection (.zip)
+                            </Button>
+                        </a>
+                    </div>
+                )}
+            </div>
+        )}
+      </CardContent>
+    </div>
+  );
 };
 
-startServer();
+export default GenerationStatusStep;
