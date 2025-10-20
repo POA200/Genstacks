@@ -1,27 +1,21 @@
-// /genstacks/genstacksapp/src/components/form-steps/GenerationStatusStep.tsx (FINAL FIX FOR BUILD ERRORS)
+// /genstacks/genstacksapp/src/components/form-steps/GenerationStatusStep.tsx (FINAL AND CORRECTED BUILD FIX)
 
 import { Button } from '@/components/ui/button';
-// FIX TS2304: Ensure all Shadcn components are explicitly imported or defined.
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCollectionConfigStore } from '@/store/configStore';
 import { useAuthStore } from '@/store/authStore';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Loader2, CheckCircle, XCircle, DollarSign } from 'lucide-react';
-import { openContractCall, AnchorMode } from '@stacks/connect'; // Added AnchorMode
-import { STACKS_TESTNET } from '@stacks/network'; // FIX 1: Renamed export
+import { request } from '@stacks/connect'; 
+
+// FIX 1: Import StacksTestnet directly, or the STACKS_TESTNET constant (constant is safer in this context)
+
+// FIX 2 & 3: Use 'import type' for types and import the exposed namespaces (Cl and Pc)
+import type { ClarityValue } from '@stacks/transactions'; 
 import { 
-    bufferCVFromString, 
-    // FIX 2: Check for direct exports or use appropriate package imports
-    makeSTXTokenTransfer, // Use the base transfer function if needed
-    FungibleConditionCode, 
-    // FIX 3 & 4: These functions are often accessed through the main @stacks/transactions namespace or helpers
-    // We will use the common format that generally works across versions:
-    makeStandardSTXPostCondition,
-    createAssetInfo,
-    uintCV, // Assuming uintCV is exported correctly now
-    PostConditionMode, // FIX 5: Import the PostConditionMode enum
-    // We remove StacksTransaction and related unused types/imports to fix TS6133
+  Cl, // Clarity Value Constructor (Cl.stringAscii, Cl.uint, etc.)
+  Pc, // PostCondition Builder (Pc.principal().willSendEq().ustx())
 } from '@stacks/transactions'; 
 
 
@@ -29,17 +23,18 @@ interface GenerationStatusStepProps {
   onCancel: () => void;
 }
 
-// ... (Environment variables remain the same)
+// Environment Variables
 const RENDER_ENV_URL = import.meta.env.VITE_RENDER_API_URL;
 const API_BASE_URL = RENDER_ENV_URL || 'http://localhost:10000/api'; 
 
 // Stacks Constants
 const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
-const FEE_CONTRACT_ID = 'SP2BWNDQ6FFHCRGRP1VCAXHSMYTDY8J8T075AZV4Q.nft-fee-collector'; // Your mock/placeholder ID
+// VITAL: Your deployed Clarity Contract ID!
+const FEE_CONTRACT_ID = 'SP2BWNDQ6FFHCRGRP1VCAXHSMYTDY8J8T075AZV4Q.nft-fee-collector'; 
 
 type JobStatus = 'QUEUED' | 'GENERATING' | 'COMPLETE' | 'PAID' | 'FAILED' | 'UNKNOWN';
 
-const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel }) => {
+const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ }) => {
   const { collectionName, supply, layers } = useCollectionConfigStore();
   const stxAddress = useAuthStore(state => state.userAddresses?.stxAddress);
 
@@ -50,15 +45,13 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
   const [txId, setTxId] = useState<string | null>(null);
   
   const pollInterval = useRef<NodeJS.Timeout | null>(null);
-  // FIX TS6133: Ensure isMounted is used
   const isMounted = useRef(true); 
 
-  // --- 1. START GENERATION JOB (Runs on component mount) ---
+  // --- 1. START GENERATION JOB ---
   useEffect(() => {
     isMounted.current = true;
-    // ... (Job start logic remains the same)
-    
-    // Function to start the job on the Render backend
+    if (status !== 'UNKNOWN' && status !== 'FAILED') return; 
+
     const startJob = async () => {
       const newJobId = crypto.randomUUID(); 
       setJobId(newJobId);
@@ -96,11 +89,10 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
       isMounted.current = false;
       if (pollInterval.current) clearInterval(pollInterval.current);
     };
-  }, []);
+  }, [stxAddress]); 
 
   // --- 2. POLLING LOGIC (Remains the same) ---
   const startPolling = (currentJobId: string) => {
-    // ... (polling logic remains the same)
     if (pollInterval.current) clearInterval(pollInterval.current);
 
     pollInterval.current = setInterval(async () => {
@@ -139,47 +131,44 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
 
     const [contractAddress, contractName] = FEE_CONTRACT_ID.split('.');
     
-    // Post-Condition: User must send exactly 50 STX to the contract
-    const stxAssetInfo = createAssetInfo('STX', 'STX', 'STX'); 
-    
-    const postCondition = makeStandardSTXPostCondition(
-        stxAddress,
-        FungibleConditionCode.Equal, 
-        FEE_AMOUNT_USTX,
-        stxAssetInfo 
-    );
+    // Construct the Post Condition using the 'Pc' namespace
+    const postCondition = Pc.principal(stxAddress)
+        .willSendEq(FEE_AMOUNT_USTX) 
+        .ustx(); 
 
-    await openContractCall({
-        network: STACKS_TESTNET, // FIX 1: Use STACKS_TESTNET constant
-        anchorMode: AnchorMode.Any, // Added for modern transaction options
-        contractAddress: contractAddress, 
-        contractName: contractName, 
-        functionName: 'pay-for-collection',
-        functionArgs: [
-            // Assuming the Clarity contract takes a job-id (string-ascii 64)
-            bufferCVFromString(jobId) 
-        ],
-        postConditions: [postCondition],
-        postConditionMode: PostConditionMode.Deny, // FIX 5: Use enum import
-        
-        onFinish: async (data) => {
-            setTxId(data.txId);
-            setStatus('PAID');
-            console.log('Transaction broadcasted:', data.txId);
-            
-            await axios.post(`${API_BASE_URL}/verify-payment`, {
-                jobId: jobId,
-                txId: data.txId,
-                stxAddress: stxAddress
-            });
-            startPolling(jobId);
-        },
-        // FIX TS6133: ensure onCancel is read/used
-        onCancel: () => {
-            console.log("Transaction cancelled by user.");
-            setStatus('COMPLETE'); 
-        }
-    });
+    // Construct the Clarity function arguments using the 'Cl' namespace
+    const functionArgs: ClarityValue[] = [
+        Cl.stringAscii(jobId) 
+    ];
+
+    try {
+      // FIX: Use the string literal for network, or the STACKS_TESTNET constant
+      // Using string 'testnet' is often safer for serialization in request()
+      const response = await request('stx_callContract', {
+          contract: `${contractAddress}.${contractName}`,
+          functionName: 'pay-for-collection',
+          functionArgs: functionArgs,
+      postConditions: [postCondition],
+      postConditionMode: 'deny', 
+          network: 'testnet', // Use string literal for network
+      });
+      
+      const txid = (response as {txid: string}).txid;
+
+      setTxId(txid);
+      setStatus('PAID');
+      
+      await axios.post(`${API_BASE_URL}/verify-payment`, {
+          jobId: jobId,
+          txId: txid,
+          stxAddress: stxAddress
+      });
+      startPolling(jobId);
+
+    } catch (error) {
+      console.error('Transaction failed or was cancelled:', error);
+      setStatus('COMPLETE'); 
+    }
   };
   
   // --- RENDERING STATUS BADGE (Remains the same) ---
@@ -216,7 +205,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
             {generationError && <p className="text-red-500 text-sm mt-2">Error: {generationError}</p>}
         </div>
 
-        {/* --- PAYMENT UNLOCK SECTION (Visible only after generation is COMPLETE) --- */}
+        {/* --- PAYMENT UNLOCK SECTION --- */}
         {(status === 'COMPLETE' || status === 'PAID') && (
             <div className="border-t pt-4">
                 {status === 'COMPLETE' && (

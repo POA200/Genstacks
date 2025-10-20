@@ -6,6 +6,12 @@
   ],
     "compilerOptions": {
     "baseUrl": ".",
+    "moduleResolution": "node", // Use "node" or "bundler"
+    "module": "esnext", 
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@/*": ["./src/*"]
     }
