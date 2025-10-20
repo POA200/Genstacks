@@ -73,13 +73,13 @@ const CollectionForm: React.FC<CollectionFormProps> = ({ onCancel }) => {
             )}
             
             {currentStep === totalSteps && (
-              <Button 
-                onClick={handleFinalize} 
-                disabled={!isRarityConfigured} 
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Finalize & Generate
-              </Button>
+                <Button 
+                onClick={handleFinalize} 
+                disabled={!isRarityConfigured} // Stays disabled until Step 3 is valid
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                 Finalize & Generate
+              </Button>
             )}
           </div>
         </CardFooter>
