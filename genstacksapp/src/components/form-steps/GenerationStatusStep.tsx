@@ -20,14 +20,15 @@ interface GenerationStatusStepProps {
   onCancel: () => void;
 }
 
-// Environment Variables (Resolved from Vercel/Vite .env)
+// --- Environment Variables (Resolved from Vercel/Vite .env) ---
 const RENDER_ENV_URL = import.meta.env.VITE_RENDER_API_URL;
 const API_BASE_URL = RENDER_ENV_URL || 'http://localhost:10000/api'; 
 
-// Stacks Constants
+// --- Stacks Constants ---
 const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
 // VITAL: Replace the MOCK address below with your DEPLOYED Clarity Contract ID!
-const FEE_CONTRACT_ID = 'ST000000000000000000002AMW4QW.nft-fee-collector'; 
+// Use the final deployed address: 'SP...ADDRESS.contract-name'
+const FEE_CONTRACT_ID = 'SP2BWNDQ6FFHCRGRP1VCAXHSMYTDY8J8T075AZV4Q.nft-fee-collector'; 
 
 type JobStatus = 'QUEUED' | 'GENERATING' | 'COMPLETE' | 'PAID' | 'FAILED' | 'UNKNOWN';
 
@@ -48,23 +49,28 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
   useEffect(() => {
     isMounted.current = true;
     
+    // We only want to start the job if we are on Step 4 and haven't already started/failed
+    if (status !== 'UNKNOWN' && status !== 'FAILED') return; 
+
     const startJob = async () => {
+      // Re-use the jobId if it was somehow set during the LayerUploadStep, otherwise generate new
       const newJobId = crypto.randomUUID(); 
       setJobId(newJobId);
       setStatus('QUEUED');
       
       try {
+        // CALL TO RENDER BACKEND TO START WORKER THREAD
         const response = await axios.post(`${API_BASE_URL}/start-generation`, {
           jobId: newJobId,
           collectionName,
           supply,
-          layers,
+          layers, // Send the validated rarity/layer config
           stxAddress,
         });
 
         if (response.data.status === 'QUEUED') {
           console.log(`Job ${newJobId} successfully queued on Render.`);
-          startPolling(newJobId);
+          startPolling(newJobId); // Start checking status
         } else {
             setStatus('FAILED');
             setGenerationError('Failed to queue job on backend.');
@@ -128,7 +134,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
     const [contractAddress, contractName] = FEE_CONTRACT_ID.split('.');
     
     // Post-Condition: User must send exactly 50 STX to the contract
-    const stxAssetInfo = createAssetInfo('STX', 'STX', 'STX'); // Stacks native token info
+    const stxAssetInfo = createAssetInfo('STX', 'STX', 'STX'); 
     
     const postCondition = makeStandardSTXPostCondition(
         stxAddress,
@@ -138,7 +144,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
     );
 
     await openContractCall({
-        network: new StacksTestnet(), 
+        network: new StacksTestnet(), // Change to StacksMainnet() for production
         contractAddress: contractAddress, 
         contractName: contractName, 
         functionName: 'pay-for-collection',
@@ -151,7 +157,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
         
         onFinish: async (data) => {
             setTxId(data.txId);
-            setStatus('PAID');
+            // Status remains 'COMPLETE' until Render confirms payment via /verify-payment
             console.log('Transaction broadcasted:', data.txId);
             
             // Immediately notify Render backend to verify the transaction and release the link
@@ -160,6 +166,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
                 txId: data.txId,
                 stxAddress: stxAddress
             });
+            // Start polling again, looking for the backend's status update to PAID
             startPolling(jobId);
         },
         onCancel: () => {
@@ -169,7 +176,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
     });
   };
   
-  // --- RENDERING STATUS BADGE (Remains the same) ---
+  // --- RENDERING STATUS BADGE ---
   const StatusBadge = () => {
     switch (status) {
       case 'QUEUED':
@@ -203,7 +210,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
             {generationError && <p className="text-red-500 text-sm mt-2">Error: {generationError}</p>}
         </div>
 
-        {/* --- PAYMENT UNLOCK SECTION --- */}
+        {/* --- PAYMENT UNLOCK SECTION (Visible only after generation is COMPLETE) --- */}
         {(status === 'COMPLETE' || status === 'PAID') && (
             <div className="border-t pt-4">
                 {status === 'COMPLETE' && (
