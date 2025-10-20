@@ -1,33 +1,33 @@
-// /genstacks/genstacksapp/src/components/form-steps/GenerationStatusStep.tsx
+// /genstacks/genstacksapp/src/components/form-steps/GenerationStatusStep.tsx (Final Ready Version)
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useCollectionConfigStore } from '@/store/configStore';
 import { useAuthStore } from '@/store/authStore';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Loader2, CheckCircle, XCircle, DollarSign } from 'lucide-react';
 import { openContractCall } from '@stacks/connect';
-import { StacksTestnet } from '@stacks/network'; // Use StacksMainnet() for production
+import { StacksTestnet } from '@stacks/network'; 
 import { 
-    bufferCVFromString, uintCV, 
-    makeStandardSTXPostCondition, FungibleConditionCode, 
-    // Types needed for modern Stacks.js transaction verification
-    createAssetInfo, StacksTransaction
+    bufferCVFromString, 
+    makeStandardSTXPostCondition, 
+    FungibleConditionCode, 
+    createAssetInfo
 } from '@stacks/transactions';
 
 interface GenerationStatusStepProps {
   onCancel: () => void;
 }
 
-// --- Environment Variables (Resolved from Vercel/Vite .env) ---
+// Environment Variables (Resolved from Vercel/Vite .env)
 const RENDER_ENV_URL = import.meta.env.VITE_RENDER_API_URL;
 const API_BASE_URL = RENDER_ENV_URL || 'http://localhost:10000/api'; 
 
-// --- Stacks Constants ---
+// Stacks Constants
 const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
 // VITAL: Replace the MOCK address below with your DEPLOYED Clarity Contract ID!
-const MOCK_FEE_CONTRACT_ID = 'ST000000000000000000002AMW4QW.nft-fee-collector'; 
+const FEE_CONTRACT_ID = 'ST000000000000000000002AMW4QW.nft-fee-collector'; 
 
 type JobStatus = 'QUEUED' | 'GENERATING' | 'COMPLETE' | 'PAID' | 'FAILED' | 'UNKNOWN';
 
@@ -49,24 +49,22 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
     isMounted.current = true;
     
     const startJob = async () => {
-      // Re-use the jobId generated in the LayerUploadStep if possible, or generate new
       const newJobId = crypto.randomUUID(); 
       setJobId(newJobId);
       setStatus('QUEUED');
       
       try {
-        // CALL TO RENDER BACKEND TO START WORKER THREAD
         const response = await axios.post(`${API_BASE_URL}/start-generation`, {
           jobId: newJobId,
           collectionName,
           supply,
-          layers, // Send the validated rarity/layer config
+          layers,
           stxAddress,
         });
 
         if (response.data.status === 'QUEUED') {
           console.log(`Job ${newJobId} successfully queued on Render.`);
-          startPolling(newJobId); // Start checking status
+          startPolling(newJobId);
         } else {
             setStatus('FAILED');
             setGenerationError('Failed to queue job on backend.');
@@ -117,7 +115,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
             console.error('Polling error:', error);
         }
       }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
   };
   
   // --- 3. PAYMENT TRANSACTION LOGIC (Stacks.js) ---
@@ -127,7 +125,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
         return;
     }
 
-    const [contractAddress, contractName] = MOCK_FEE_CONTRACT_ID.split('.');
+    const [contractAddress, contractName] = FEE_CONTRACT_ID.split('.');
     
     // Post-Condition: User must send exactly 50 STX to the contract
     const stxAssetInfo = createAssetInfo('STX', 'STX', 'STX'); // Stacks native token info
@@ -140,12 +138,12 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
     );
 
     await openContractCall({
-        network: new StacksTestnet(), // Use StacksMainnet() for production deployment
+        network: new StacksTestnet(), 
         contractAddress: contractAddress, 
         contractName: contractName, 
         functionName: 'pay-for-collection',
         functionArgs: [
-            // Arguments to the Clarity function: job-id (string-ascii 64)
+            // Pass the job ID as a buffer (string-ascii in Clarity)
             bufferCVFromString(jobId) 
         ],
         postConditions: [postCondition],
@@ -162,18 +160,16 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
                 txId: data.txId,
                 stxAddress: stxAddress
             });
-            // Start polling again, this time looking for the backend's status update to PAID
             startPolling(jobId);
         },
         onCancel: () => {
             console.log("Transaction cancelled by user.");
-            // Revert status display if payment was in progress
             setStatus('COMPLETE'); 
         }
     });
   };
   
-  // --- RENDERING STATUS BADGE ---
+  // --- RENDERING STATUS BADGE (Remains the same) ---
   const StatusBadge = () => {
     switch (status) {
       case 'QUEUED':
@@ -207,7 +203,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
             {generationError && <p className="text-red-500 text-sm mt-2">Error: {generationError}</p>}
         </div>
 
-        {/* --- PAYMENT UNLOCK SECTION (Visible only after generation is COMPLETE) --- */}
+        {/* --- PAYMENT UNLOCK SECTION --- */}
         {(status === 'COMPLETE' || status === 'PAID') && (
             <div className="border-t pt-4">
                 {status === 'COMPLETE' && (
@@ -237,7 +233,6 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = ({ onCancel })
                 )}
             </div>
         )}
-        
       </CardContent>
     </div>
   );
