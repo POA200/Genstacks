@@ -42,7 +42,12 @@ app.use(cors({
 }));
 
 // --- API Helper Function (Cleanest REST Call) ---
-const fetchStacksTransaction = async (txId: string) => {
+type StacksTransaction = {
+    tx_status?: string;
+    [key: string]: any;
+};
+
+const fetchStacksTransaction = async (txId: string): Promise<StacksTransaction> => {
     const headers: Record<string, string> = {
         'Accept': 'application/json',
     };
@@ -53,9 +58,9 @@ const fetchStacksTransaction = async (txId: string) => {
     // Direct call to the V2 transactions endpoint
     const url = `${HIRO_API_BASE_URL}/v2/transactions/${txId}`;
     
-    // Use the generic response, letting the caller handle the JSON structure
+    // Use the generic response, casting to a known shape so callers don't get `unknown`
     const response = await axios.get(url, { headers });
-    return response.data;
+    return response.data as StacksTransaction;
 };
 // ----------------------------------------------------
 
