@@ -87,11 +87,11 @@ router.post('/start-generation', async (req: Request, res: Response) => {
 
     try {
         const updateResult: QueryResult<Job> = await pool.query(
-            // FIX: Use explicit stringify and ::text::jsonb casting for resilience
-            `UPDATE jobs SET rarity_config = $1::text::jsonb, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
+            // FIX 1: Revert to standard parameter passing for layers (relying on pg driver's serializer)
+            `UPDATE jobs SET rarity_config = $1, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
              WHERE id = $4 RETURNING *`,
             [
-                JSON.stringify(layers), // Explicitly stringify the object
+                layers, // Pass RAW object (pg driver should handle JSONB serialization)
                 supply, 
                 collectionName, 
                 jobId
@@ -104,16 +104,18 @@ router.post('/start-generation', async (req: Request, res: Response) => {
         
         const job: Job = updateResult.rows[0];
 
-        // Launch the Worker Thread for heavy computation
-        const workerPath = path.join(__dirname, 'worker', 'generator.js');
+        // FIX 2: Use the explicit TS-NODE execArgv flag for high resilience in Render
+        const workerPath = path.join(__dirname, 'worker', 'generator.ts');
         const workerUrl = new URL(`file://${workerPath}`);
         
         const worker = new Worker(workerUrl, {
             workerData: { jobId: job.id, jobData: job },
+            // CRITICAL FIX for Node.js workers running TypeScript files via ts-node
+            execArgv: ['-r', 'ts-node/register'], 
         });
         
         worker.on('error', (err) => { 
-            console.error(`Worker error for ${job.id}:`, err);
+            console.error(`Worker thread error for ${job.id}:`, err);
             pool.query(`UPDATE jobs SET status = 'FAILED', updated_at = NOW() WHERE id = $1`, [job.id]);
         });
         worker.on('exit', (code) => { 
@@ -125,6 +127,7 @@ router.post('/start-generation', async (req: Request, res: Response) => {
 
     } catch (e) {
         console.error('Database/Job queuing error:', e);
+        // If the DB fails, return a 500 error to the client
         return res.status(500).json({ status: 'error', message: 'Failed to queue generation job.' });
     }
 });
