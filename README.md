@@ -1,9 +1,3 @@
-This is a professional and detailed README template for your GENSTACKS dApp GitHub repository. It focuses on clarity, the technology stack, setup instructions, and managing expectations regarding the V1 (generator) and V2 (minting) roadmap.
-
-Use Markdown for the final file (`README.md`).
-
----
-
 # GENSTACKS: NFT Collection Generator (Stacks)
 
 [](https://www.google.com/search?q=https://github.com/POA200/Genstacks/issues)
