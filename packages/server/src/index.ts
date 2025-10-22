@@ -87,18 +87,17 @@
 
         try {
             const updateResult: QueryResult<Job> = await pool.query(
-                // 1. Cast the $1 parameter to ::jsonb to explicitly tell Postgres what it is.
-                // 2. Ensure parameters are passed in the correct order.
-                `UPDATE jobs SET rarity_config = $1::jsonb, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
-                WHERE id = $4 RETURNING *`,
-                [
-                    // We pass the RAW object, and the pg client handles the serialization/sanitization.
-                    layers, 
-                    supply, 
-                    collectionName, 
-                    jobId
-                ]
-            );
+              // Query remains the same, but the parameter $1 now holds a string.
+              `UPDATE jobs SET rarity_config = $1::jsonb, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
+              WHERE id = $4 RETURNING *`,
+              [
+                  // FIX: Explicitly JSON.stringify the complex object 
+                  JSON.stringify(layers), 
+                  supply, 
+                  collectionName, 
+                  jobId
+              ]
+          );
             
             if (updateResult.rows.length === 0) {
                 return res.status(404).json({ status: 'error', message: 'Job not found for update.' });
