@@ -1,0 +1,18 @@
+---
+id: 0
+name: Testnet deployment
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoind.testnet.stacks.co:18332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: nft-fee-collector
+            expected-sender: ST16R99CR18X1A20JBV0N546BH07HGWMKBRTCRK90
+            cost: 18780
+            path: contracts/nft-fee-collector.clar
+            anchor-block-only: true
+            clarity-version: 1
+      epoch: "2.05"

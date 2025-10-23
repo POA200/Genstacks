@@ -22,7 +22,7 @@ const API_BASE_URL = RENDER_ENV_URL || 'http://localhost:10000/api';
 
 // Stacks Constants
 const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
-const FEE_CONTRACT_ID = 'SP2BWNDQ6FFHCRGRP1VCAXHSMYTDY8J8T075AZV4Q.nft-fee-collector'; 
+const FEE_CONTRACT_ID = 'ST16R99CR18X1A20JBV0N546BH07HGWMKBRTCRK90.nft-fee-collector';
 
 type JobStatus = 'QUEUED' | 'GENERATING' | 'COMPLETE' | 'PAID' | 'FAILED' | 'UNKNOWN';
 

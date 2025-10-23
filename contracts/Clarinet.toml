@@ -1,9 +1,12 @@
 [project]
-name = "genstackssc"
+name = "contracts"
 description = ""
 authors = []
 telemetry = true
 cache_dir = "./.cache"
+
+[contracts.nft-fee-collector]
+path = "contracts/nft-fee-collector.clar"
 
 # [contracts.counter]
 # path = "contracts/counter.clar"

@@ -8,6 +8,8 @@
     "dev": "ts-node src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.914.0",
+    "@aws-sdk/s3-request-presigner": "^3.914.0",
     "@stacks/blockchain-api-client": "^8.13.1",
     "@stacks/connect": "^8.2.0",
     "@stacks/network": "^7.2.0",
