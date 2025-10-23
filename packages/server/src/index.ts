@@ -90,12 +90,14 @@ router.post('/start-generation', async (req: Request, res: Response) => {
         // FIX 1: Explicitly stringify the layers and force $1 to be treated as text, 
         // which Postgres then casts to JSONB. This bypasses the serialization conflict.
         const updateResult: QueryResult<Job> = await pool.query(
-            `UPDATE jobs SET rarity_config = $1::text::jsonb, supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
-             WHERE id = $4 RETURNING *`,
+            // FINAL DB FIX: Use the native PostgreSQL TO_JSON function on the stringified parameter.
+            `UPDATE jobs SET rarity_config = TO_JSON($1), supply = $2, collection_name = $3, status = 'QUEUED', updated_at = NOW() 
+            WHERE id = $4 RETURNING *`,
             [
-                JSON.stringify(layers), // FINAL DB FIX
-                supply,
-                collectionName,
+                // We pass the JSON string, and TO_JSON converts the SQL string parameter into JSONB.
+                JSON.stringify(layers), 
+                supply, 
+                collectionName, 
                 jobId
             ]
         );
