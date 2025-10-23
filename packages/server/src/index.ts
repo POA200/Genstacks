@@ -9,6 +9,7 @@ import { Worker } from 'worker_threads';
 import path from 'path';
 import { QueryResult } from 'pg';
 import axios from 'axios';
+import { getUploadPreSignedUrl, getDownloadPreSignedUrl } from './s3';
 
 dotenv.config();
 
