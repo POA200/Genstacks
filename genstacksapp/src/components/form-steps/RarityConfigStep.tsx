@@ -70,18 +70,19 @@ const RarityConfigStep: React.FC<RarityConfigStepProps> = ({ onNext }) => {
   };
   
   // --- FINAL SUBMISSION HANDLER ---
-  const handleSubmit = () => {
+const handleSubmit = () => {
     if (!canProceed) return;
     
-    // Crucial: Save the final, validated configuration back to the global store
+    // FIX: Round all rarity values to 2 decimal places to prevent float errors in Postgres
     localLayers.forEach(layer => {
         layer.traits.forEach(trait => {
-            updateTraitRarity(layer.id, trait.name, trait.rarity);
+            const roundedRarity = parseFloat(trait.rarity.toFixed(2));
+            updateTraitRarity(layer.id, trait.name, roundedRarity);
         });
     });
 
-    onNext(); // Proceed to the final step (Step 4)
-  };
+    onNext(); 
+};
 
   if (layers.length === 0) {
     return <div className="text-center text-red-500">Error: No layers found. Please go back to Step 2 and upload files.</div>
