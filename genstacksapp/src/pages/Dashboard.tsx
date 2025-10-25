@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import React, { useState } from 'react';
 import CollectionForm from '@/components/CollectionForm';
-import { Logut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 const Dashboard: React.FC = () => {
   // Use separate selectors for performance and debugging
@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
           <span className="text-gray-500 truncate">
             {stxAddress.substring(0, 5)}...{stxAddress.slice(-4)}
           </span>
-          <Button variant="outline" onClick={logout}><Logout />Disconnect</Button>
+          <Button variant="outline" onClick={logout}><LogOut />Disconnect</Button>
         </div>
       </header>
 
