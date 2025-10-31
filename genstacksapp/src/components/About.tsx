@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 const About: React.FC = () => {
   return (
-    <section className={cn('w-full bg-transparent relative py-12 md:py-20 lg:py-28')}>
+    <section id="about" className={cn('w-full bg-transparent relative py-12 md:py-20 lg:py-28')}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           {/* Decorative background accents positioned behind content */}

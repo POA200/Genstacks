@@ -6,6 +6,14 @@ import { useState } from 'react';
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      setIsMobileMenuOpen(false); // Close mobile menu after clicking
+    }
+  };
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -22,20 +30,35 @@ const Navbar: React.FC = () => {
         
         {/* Desktop Menu */}
         <div className='hidden md:flex justify-center items-center space-x-4'>
-          <Button className="rounded-lg text-lg lg:text-2xl tracking-wider" variant={'link'} size={'lg'}>
+          <Button 
+            className="rounded-lg text-lg lg:text-2xl tracking-wider" 
+            variant={'link'} 
+            size={'lg'}
+            onClick={() => scrollToSection('hero')}
+          >
             HOME
           </Button>
-          <Button className="rounded-lg text-lg lg:text-2xl tracking-wider" variant={'link'} size={'lg'}>
+          <Button 
+            className="rounded-lg text-lg lg:text-2xl tracking-wider" 
+            variant={'link'} 
+            size={'lg'}
+            onClick={() => scrollToSection('about')}
+          >
             ABOUT
           </Button>
-          <Button className="rounded-lg text-lg lg:text-2xl tracking-wider" variant={'link'} size={'lg'}>
+          <Button 
+            className="rounded-lg text-lg lg:text-2xl tracking-wider" 
+            variant={'link'} 
+            size={'lg'}
+            onClick={() => scrollToSection('features')}
+          >
             FEATURES
           </Button>
           <ModeToggle />
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-0">
           <ModeToggle />
           <Button
             variant="ghost"
@@ -72,15 +95,30 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-[44px] w-full bg-secondary/20 backdrop-blur-sm border-b border-primary/50 z-40 py-4">
+        <div className="md:hidden fixed top-[44px] w-full bg-secondary/10 backdrop-blur-lg border-b border-primary/50 z-40 py-8">
           <div className="flex flex-col items-center space-y-4">
-            <Button className="rounded-lg text-xl tracking-wider w-full" variant={'link'} size={'lg'}>
+            <Button 
+              className="rounded-lg text-xl tracking-wider w-full" 
+              variant={'link'} 
+              size={'lg'}
+              onClick={() => scrollToSection('hero')}
+            >
               HOME
             </Button>
-            <Button className="rounded-lg text-xl tracking-wider w-full" variant={'link'} size={'lg'}>
+            <Button 
+              className="rounded-lg text-xl tracking-wider w-full" 
+              variant={'link'} 
+              size={'lg'}
+              onClick={() => scrollToSection('about')}
+            >
               ABOUT
             </Button>
-            <Button className="rounded-lg text-xl tracking-wider w-full" variant={'link'} size={'lg'}>
+            <Button 
+              className="rounded-lg text-xl tracking-wider w-full" 
+              variant={'link'} 
+              size={'lg'}
+              onClick={() => scrollToSection('features')}
+            >
               FEATURES
             </Button>
           </div>

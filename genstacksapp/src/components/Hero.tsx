@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
 
   return (
     <>
-    <div className={cn(
+    <div id="hero" className={cn(
       "min-h-screen antialiased relative"
     )}>
       {/* Background Image */}

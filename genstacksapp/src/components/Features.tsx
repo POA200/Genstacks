@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card } from '@/components/ui/card';
 import Featureone from '@/assets/Featureone.png';
 import Featuretwo from '@/assets/Featuretwo.png';
@@ -48,7 +47,7 @@ const features = [
 
 const Features = () => {
   return (
-    <section className="py-16 md:py-24 lg:py-32 relative px-6 overflow-hidden">
+    <section id="features" className="py-16 md:py-24 lg:py-32 relative px-6 overflow-hidden">
       <div className="absolute left-0 top-2/3 -translate-y-1/2 pointer-events-none">
         <img
           src={Featureimg}
