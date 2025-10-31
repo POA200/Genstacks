@@ -1,4 +1,4 @@
-import GenstacksLogo from '@/GenstacksLogo.png';
+import GenstacksLogo from './public/GenstacksLogo.png';
 import { Button } from './ui/button';
 import { ModeToggle } from "@/components/mode-toggle";
 import { useState } from 'react';
