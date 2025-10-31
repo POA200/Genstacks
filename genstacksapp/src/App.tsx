@@ -1,17 +1,20 @@
-// /genstacks/genstacksapp/src/App.tsx 
 import { useAuthStore } from './store/authStore';
 import Dashboard from './pages/Dashboard'; 
-import Landing from './pages/Landing'; 
+import Landing from './pages/Landing';
+import { ThemeProvider } from "@/components/theme-provider"
 
 function App() {
-  // Simple, single selector - essential for preventing the loop
-  const isAuth = useAuthStore(state => state.isAuth); 
 
-  if (isAuth) {
-    return <Dashboard />;
-  }
+  const isAuth = useAuthStore(state => state.isAuth);
+  const showDashboard = useAuthStore(state => state.showDashboard);
 
-  return <Landing />;
+  return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <>
+        {isAuth && showDashboard ? <Dashboard /> : <Landing />}
+      </>
+    </ThemeProvider>
+  );
 }
 
 export default App;

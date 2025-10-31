@@ -32,6 +32,9 @@ interface UserAddresses {
 interface AuthState {
   isAuth: boolean;
   userAddresses: UserAddresses | null;
+  /** Controls whether the app should show the dashboard view (manual user navigation) */
+  showDashboard: boolean;
+  setShowDashboard: (v: boolean) => void;
   connectWallet: () => Promise<void>;
   logout: () => void;
 }
@@ -56,18 +59,31 @@ const initialAddresses = isConnected() && localStorageData?.addresses
 export const useAuthStore = create<AuthState>((set) => ({
   isAuth: isConnected(),
   userAddresses: initialAddresses,
+  showDashboard: false,
+
+  setShowDashboard: (v: boolean) => set({ showDashboard: v }),
 
   connectWallet: async () => {
+    // If already connected, update store from local storage and return
     if (isConnected()) {
-      console.log('Already authenticated. Skipping connect call.');
+      console.log('Already authenticated. Updating store from local storage.');
+      const local = getLocalStorage();
+      const addresses = local?.addresses ? extractAddresses(local.addresses as Addresses) : null;
+      set({ isAuth: true, userAddresses: addresses });
       return;
     }
-    
-    try {
-      await connect(); 
-      // Refresh to reload App.tsx and re-run initial state logic 
-      window.location.reload(); 
 
+    try {
+      // Trigger the connect flow (popup / redirect handled by @stacks/connect)
+      await connect();
+
+      // After connect completes, read the updated local storage and update the store
+      const local = getLocalStorage();
+      const addresses = local?.addresses ? extractAddresses(local.addresses as Addresses) : null;
+      set({ isAuth: isConnected(), userAddresses: addresses });
+
+      // Note: removed automatic window.location.reload() so the app can react
+      // to auth state changes through Zustand without forcing a full page reload.
     } catch (error) {
       console.error('Wallet connection failed:', error);
     }
@@ -75,7 +91,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     disconnect(); 
-    set({ isAuth: false, userAddresses: null });
-    window.location.reload();
+    set({ isAuth: false, userAddresses: null, showDashboard: false });
   },
 }));
