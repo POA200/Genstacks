@@ -42,7 +42,7 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 bg-background/20 backdrop-blur-sm" />
 
       {/* Content */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-4 md:p-6 lg:p-8">
+      <div className="mt-12 relative flex flex-col items-center justify-center min-h-screen p-4 md:p-6 lg:p-8 pb-28 md:pb-32 lg:pb-36">
         <Badge
           className="text-sm md:text-md lg:text-lg px-2 md:px-3 lg:px-4 mb-4 tracking-wider text-foreground text-center bg-primary/20 backdrop-blur-sm border-2 border-primary "
           variant={'outline'}
@@ -75,6 +75,16 @@ const Hero: React.FC = () => {
         </Button>
       )}
       </div>
+
+      {/* Bottom feature bar (matches provided image) */}
+            <div className="w-full py-6 md:py-8 lg:py-10 bg-gradient-to-b from-[#161343]/18 via-[#3730A9]/14 to-[#3730A9]/12 backdrop-blur-lg">
+              <div className="flex items-center justify-center gap-10 md:gap-32 lg:gap-48 text-foreground tracking-wider text-sm md:text-lg lg:text-4xl">
+                <span className="whitespace-nowrap">NFT</span>
+                <span className="whitespace-nowrap">CRYPTO</span>
+                <span className="whitespace-nowrap">BLOCKCHAIN</span>
+                <span className="whitespace-nowrap">STACKS</span>
+              </div>
+            </div>
     </div>
     </>
   );
