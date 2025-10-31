@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/store/authStore';
 import React from 'react';
 import { cn } from "@/lib/utils";
-import HeroImg from './public/Heroimg.png';
+import HeroImg from '../assets/Heroimg.png';
 
 const Hero: React.FC = () => {
   const connectWallet = useAuthStore(state => state.connectWallet);
