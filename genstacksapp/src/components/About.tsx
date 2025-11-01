@@ -32,13 +32,10 @@ const About: React.FC = () => {
           {/* Text: on small screens appears below image */}
           <div className="order-2 md:order-2 text-center md:text-left z-10">
             <h3 className="text-lg md:text-2xl lg:text-4xl text-primary font-medium mb-2 tracking-wide">
-              GENSTACKS: Built on Clarity. Secured by Bitcoin.
+              Create, Customize, Own. The Ultimate Stacks NFT Generator.
             </h3>
             <p className="text-md md:text-lg lg:text-2xl text-foreground leading-relaxed tracking-wide">
-              We use the power of the Stacks blockchain to ensure your payment and collection
-              generation rights are secured with the ultimate finality. The only thing faster than
-              our security is our image generation engine, powered by Node.js and the
-              lightning-fast sharp library.
+              GENSTACKS is the first decentralized application built on Stacks to give creators full control over their generative art collection. Forget complex scripting and manual uploads. Simply upload your traits, set your rarity percentages using our intuitive UI, and instantly generate up to 10,000 unique NFT assets. Pay a small fee to secure your decentralized files and metadata, ready to mint on the Stacks blockchain when you are.
             </p>
           </div>
         </div>
