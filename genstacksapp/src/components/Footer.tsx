@@ -24,7 +24,7 @@ const Footer: React.FC = () => {
 
           {/* GitHub */}
           <a
-            href="https://github.com/genstacks"
+            href="https://github.com/POA200/Genstacks"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"
@@ -102,7 +102,7 @@ const Footer: React.FC = () => {
         <div className="w-full mb-6 border-t border-foreground/20" />
 
         {/* Copyright Text */}
-        <p className="text-center text-sm md:text-base text-foreground/60">
+        <p className="text-center text-sm md:text-base text-foreground/60 tracking-wider">
           © Copyright | Genstacks, All Rights Reserved
         </p>
       </div>
