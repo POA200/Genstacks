@@ -34,7 +34,7 @@ const About: React.FC = () => {
             <h3 className="text-lg md:text-2xl lg:text-4xl text-primary font-medium mb-2 tracking-wide">
               Create, Customize, Own. The Ultimate Stacks NFT Generator.
             </h3>
-            <p className="text-md md:text-lg lg:text-2xl text-foreground leading-relaxed tracking-wide">
+            <p className="text-md md:text-lg lg:text-2xl text-foreground leading-relaxed font-sans">
               GENSTACKS is the first decentralized application built on Stacks to give creators full control over their generative art collection. Forget complex scripting and manual uploads. Simply upload your traits, set your rarity percentages using our intuitive UI, and instantly generate up to 10,000 unique NFT assets. Pay a small fee to secure your decentralized files and metadata, ready to mint on the Stacks blockchain when you are.
             </p>
           </div>

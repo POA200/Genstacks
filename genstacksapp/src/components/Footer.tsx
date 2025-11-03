@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
         <div className="flex items-center justify-center gap-8 md:gap-12 mb-6">
           {/* X (Twitter) */}
           <a
-            href="https://x.com/genstacks"
+            href="https://x.com/Genstacks_fun"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
 
           {/* Telegram */}
           <a
-            href="https://t.me/genstacks"
+            href="https://t.me/iPetercrx"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
 
           {/* Discord */}
           <a
-            href="https://discord.gg/genstacks"
+            href="https://discord.gg/iPeter_crx"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"

@@ -38,13 +38,11 @@ const Hero: React.FC = () => {
         }}
       />
       
-      {/* Overlay for better text visibility */}
-      <div className="absolute inset-0 bg-background/20 backdrop-blur-sm" />
 
       {/* Content */}
       <div className="mt-12 relative flex flex-col items-center justify-center min-h-screen p-4 md:p-6 lg:p-8 pb-28 md:pb-32 lg:pb-36">
         <Badge
-          className="text-sm md:text-md lg:text-lg px-2 md:px-3 lg:px-4 mb-4 tracking-wider text-foreground text-center bg-primary/20 backdrop-blur-sm border-2 border-primary "
+          className="text-sm md:text-md lg:text-lg px-2 md:px-3 lg:px-4 mb-4 font-sans text-foreground text-center bg-primary/20 backdrop-blur-sm border-2 border-primary "
           variant={'outline'}
         >
           {isAuth

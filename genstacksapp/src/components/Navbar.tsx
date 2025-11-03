@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
     <>
       <div className="flex items-center justify-between py-4 md:py-6 lg:py-8 px-4 md:px-8 lg:px-12 bg-secondary/20 backdrop-blur-sm border-b border-primary 
       fixed top-0 w-full z-50">
-        <div className="flex items-center">
+        <div className="flex items-center cursor-pointer" onClick={() => scrollToSection('hero')}>
           <img src={GenstacksLogo} alt="Genstacks Logo" className="h-8 md:h-10 mr-2 rounded-full" />
           <span className="text-xl md:text-2xl lg:text-3xl text-foreground font-md tracking-wider">Genstacks</span>
         </div>

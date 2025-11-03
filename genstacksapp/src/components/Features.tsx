@@ -80,7 +80,7 @@ const Features = () => {
                 <h3 className="text-lg md:text-xl font-semibold mb-8 text-white tracking-wide">
                   {f.title}
                 </h3>
-                <p className="text-sm md:text-base text-white/80 leading-relaxed">
+                <p className="text-sm md:text-base text-white/80 leading-relaxed font-sans">
                   {f.body}
                 </p>
               </div>
