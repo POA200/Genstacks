@@ -77,8 +77,6 @@ const Footer: React.FC = () => {
           {/* Documentation */}
           <a
             href="/docs"
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"
           >
             <svg
