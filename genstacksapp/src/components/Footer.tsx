@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const Footer: React.FC = () => {
   return (
@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright Text */}
         <p className="text-center text-sm md:text-base text-foreground/60 tracking-wider">
-          © Copyright | Genstacks, All Rights Reserved
+          © {new Date().getFullYear()} Genstacks. All rights reserved.
         </p>
       </div>
     </footer>

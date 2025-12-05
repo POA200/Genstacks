@@ -134,3 +134,18 @@
     font-family: var(--font-body) !important;
   }
 }
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@layer utilities {
+  .animate-marquee-scroll {
+    animation: marquee-scroll 40s linear infinite;
+  }
+}
