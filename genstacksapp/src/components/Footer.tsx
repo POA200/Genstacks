@@ -76,7 +76,9 @@ const Footer: React.FC = () => {
 
           {/* Documentation */}
           <a
-            href="/docs"
+            href="https://docs.genstacks.fun"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-foreground/80 hover:text-primary transition-colors"
           >
             <svg

@@ -1,6 +1,4 @@
 import React from "react";
-import Footer from "@/components/Footer";
-import Logo from "@/assets/Genstacks.png";
 import {
   Card,
   CardContent,
@@ -10,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const Docs: React.FC = () => {
+const DocsPage: React.FC = () => {
   const sections = [
     { id: "overview", title: "1. Overview" },
     { id: "features", title: "2. Key Features" },
@@ -27,20 +25,18 @@ const Docs: React.FC = () => {
         {/* Header Section */}
         <div className="mb-16 text-center">
           <div className="flex justify-center mb-8">
-            <img
-              src={Logo}
-              alt="GENSTACKS Logo"
-              className="h-20 sm:h-24 w-auto"
-            />
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground">
+              GENSTACKS
+            </h1>
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            GENSTACKS Documentation
+            Documentation
           </h1>
           <p className="text-lg text-foreground/60 mb-6 font-sans">
             Decentralized NFT Collection Generator on Stacks Blockchain
           </p>
           <Badge variant="outline" className="text-base py-2 px-4">
-            Version 1.0
+            Version 1.0 (Serverless Architecture)
           </Badge>
         </div>
 
@@ -524,10 +520,8 @@ const Docs: React.FC = () => {
           </Card>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 };
 
-export default Docs;
+export default DocsPage;
