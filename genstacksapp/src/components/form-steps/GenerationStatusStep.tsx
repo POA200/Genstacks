@@ -12,9 +12,11 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Loader2, CheckCircle, XCircle, DollarSign } from "lucide-react";
 import { request } from "@stacks/connect";
+import GenerationStatusCard from "@/components/GenerationStatusCard";
 
 import type { ClarityValue } from "@stacks/transactions";
 import { Cl, Pc } from "@stacks/transactions";
+import type { CollectionConfig } from "@/types/collection";
 
 interface GenerationStatusStepProps {
   onCancel?: () => void;
@@ -28,6 +30,33 @@ const API_BASE_URL = RENDER_ENV_URL || "http://localhost:10000/api";
 const FEE_AMOUNT_USTX = 50000000n; // 50 STX in micro-STX
 const FEE_CONTRACT_ID =
   "ST16R99CR18X1A20JBV0N546BH07HGWMKBRTCRK90.nft-fee-collector";
+
+// Vercel Serverless Function URL
+const GENERATE_API_URL = '/api/generate';
+
+/**
+ * Sends the collection configuration to the serverless function to begin computation.
+ * @param config The full CollectionConfig object.
+ */
+const triggerServerlessGeneration = async (config: CollectionConfig): Promise<void> => {
+  console.log(`Sending config for generation: ${config.id}`);
+  try {
+    const response = await axios.post(GENERATE_API_URL, {
+      config: config,
+    });
+
+    if (response.status === 200) {
+      console.log("Serverless function successfully triggered.");
+      console.log("Generation started with CID:", response.data.downloadId);
+    } else {
+      console.error("Failed to trigger serverless function:", response.data);
+      throw new Error("Error: Generation service failed to start. Check server logs.");
+    }
+  } catch (error) {
+    console.error("Network error during serverless API call:", error);
+    throw new Error("Fatal Error: Could not connect to the generation service.");
+  }
+};
 
 type JobStatus =
   | "QUEUED"
@@ -46,6 +75,7 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [downloadLink, setDownloadLink] = useState<string | null>(null);
   const [txId, setTxId] = useState<string | null>(null);
+  const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const pollInterval = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true); // --- 1. START GENERATION JOB ---
 
@@ -157,7 +187,29 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = () => {
         txId: txid,
         stxAddress: stxAddress,
       });
-      startPolling(jobId);
+
+      // Construct CollectionConfig from store data
+      const collectionConfig: CollectionConfig = {
+        id: jobId,
+        name: collectionName,
+        symbol: "GEN", // Default symbol
+        supply: supply,
+        layers: layers,
+        metadataBaseUri: "",
+        creatorAddress: stxAddress || "",
+      };
+
+      // Trigger the serverless generation function
+      try {
+        await triggerServerlessGeneration(collectionConfig);
+        setGenerationJobId(jobId); // Activate the GenerationStatusCard
+        startPolling(jobId);
+      } catch (error) {
+        console.error("Job start failed:", error);
+        setGenerationError(
+          error instanceof Error ? error.message : "Failed to start generation"
+        );
+      }
     } catch (error) {
       console.error("Transaction failed or was cancelled:", error);
       setStatus("COMPLETE");
@@ -288,7 +340,9 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = () => {
         )}
              {" "}
       </CardContent>
-         {" "}
+      {generationJobId && (
+        <GenerationStatusCard collectionId={generationJobId} />
+      )}
     </div>
   );
 };
