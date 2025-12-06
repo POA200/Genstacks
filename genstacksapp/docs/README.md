@@ -1,89 +1,73 @@
-# GENSTACKS Documentation
+# React + TypeScript + Vite
 
-A standalone, beautifully designed documentation site for the GENSTACKS platform.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
+Currently, two official plugins are available:
 
-- Built with React, TypeScript, and TailwindCSS
-- Uses shadcn UI components for consistent design
-- Fully responsive and mobile-friendly
-- Dark mode support
-- Fast and optimized with Vite
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Getting Started
+## React Compiler
 
-### Prerequisites
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- Node.js 18+
-- npm or yarn
+## Expanding the ESLint configuration
 
-### Installation
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```bash
-cd docs
-npm install
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-### Development
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```bash
-npm run dev
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-The documentation will be available at `http://localhost:5173`
-
-### Building
-
-```bash
-npm run build
-```
-
-The build output will be in the `dist` directory.
-
-### Preview
-
-```bash
-npm run preview
-```
-
-## Deployment
-
-This documentation is configured to deploy on Vercel with the CNAME subdomain `docs.genstacks.fun`.
-
-### Deploy with Vercel
-
-1. Push the `genstacksapp` directory to your Git repository
-2. Import the project to Vercel
-3. In the Vercel dashboard:
-   - Set Root Directory to `genstacksapp/docs`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-4. Add custom domain: `docs.genstacks.fun`
-
-## Project Structure
-
-```
-docs/
-├── src/
-│   ├── components/
-│   │   └── ui/              # shadcn UI components
-│   ├── lib/
-│   │   └── utils.ts         # Utility functions
-│   ├── pages/
-│   │   └── Docs.tsx         # Main documentation page
-│   ├── App.tsx
-│   ├── main.tsx
-│   ├── App.css
-│   ├── index.css            # Global styles
-│   └── globals.css          # Tailwind variables
-├── public/                   # Static assets
-├── index.html
-├── vite.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
-```
-
-## License
-
-© 2025 Genstacks. All rights reserved.
