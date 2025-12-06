@@ -21,13 +21,13 @@ The current version (V1) focuses on secure, verifiable asset generation and coll
 
 ## 🛠️ Technology Stack (Serverless Architecture)
 
-| Component          | Technology                           | Description                                                                           |
-| :----------------- | :----------------------------------- | :------------------------------------------------------------------------------------ |
-| **Frontend**       | `React`, `TypeScript`, `Shadcn UI`   | User interface, wallet integration (`Stacks.js`), and status polling.                  |
-| **Compute/Backend**| `Vercel Serverless`, `Node.js`, `Sharp`| Executes image composition, rarity logic, and final Pinata upload. **No SQL required.** |
-| **Data/Storage**   | `Pinata`, `IPFS/Arweave`             | Decentralized, permanent storage for both trait assets and final collections.             |
-| **Blockchain**     | `Stacks`                             | The layer for transaction processing and future NFT minting (V2). |
-| **Smart Contract** | `Clarity`                            | Logic for V1 fee collection (`genstacks-fee.clar`).                                    |
+| Component           | Technology                              | Description                                                                             |
+| :------------------ | :-------------------------------------- | :-------------------------------------------------------------------------------------- |
+| **Frontend**        | `React`, `TypeScript`, `Shadcn UI`      | User interface, wallet integration (`Stacks.js`), and status polling.                   |
+| **Compute/Backend** | `Vercel Serverless`, `Node.js`, `Sharp` | Executes image composition, rarity logic, and final Pinata upload. **No SQL required.** |
+| **Data/Storage**    | `Pinata`, `IPFS/Arweave`                | Decentralized, permanent storage for both trait assets and final collections.           |
+| **Blockchain**      | `Stacks`                                | The layer for transaction processing and future NFT minting (V2).                       |
+| **Smart Contract**  | `Clarity`                               | Logic for V1 fee collection (`genstacks-fee.clar`).                                     |
 
 ## 📦 Project Structure (Serverless Vercel)
 
@@ -60,12 +60,14 @@ genstacks-repo-name/
 ### Installation & Setup
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/POA200/Genstacks.git
     cd Genstacks/genstacksapp
     ```
 
 2.  **Install dependencies:** (Assuming a single monorepo structure for simplicity)
+
     ```bash
     npm install
     ```
@@ -82,19 +84,19 @@ genstacks-repo-name/
 1.  **Start the Frontend & Serverless Functions (Via Vite/Vercel CLI):**
 
     ```bash
-    npm run dev 
+    npm run dev
     # Vite will proxy serverless functions via Vercel CLI locally
-    # Client should open on http://localhost:5173 
+    # Client should open on http://localhost:5173
     ```
 
 ## 📜 Clarity Contracts
 
 This dApp utilizes the `genstacks-fee.clar` contract to manage the service fee.
 
-| Contract                        | Version          | Purpose                                                                                                                    |
-| :------------------------------ | :--------------- | :------------------------------------------------------------------------------------------------------------------------- |
+| Contract                        | Version          | Purpose                                                                                                          |
+| :------------------------------ | :--------------- | :--------------------------------------------------------------------------------------------------------------- |
 | `genstacks-fee.clar`            | **V1 (Current)** | Handles the 50 STX service fee payment for asset download, prevents double payment, and logs a verifiable event. |
-| `genstacks-nft-collection.clar` | **V2 (Future)**  | Defines the Non-Fungible Token and integrates the fee into a single `mint` transaction.                                    |
+| `genstacks-nft-collection.clar` | **V2 (Future)**  | Defines the Non-Fungible Token and integrates the fee into a single `mint` transaction.                          |
 
 ## 📞 Contact
 

@@ -12,7 +12,6 @@ import {
 import { useCollectionConfigStore } from "@/store/configStore";
 import type { Layer } from "@/store/configStore";
 import React, { useState, useRef } from "react";
-import axios from "axios";
 import { Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
@@ -21,13 +20,6 @@ import { pinFileOrDirectoryToPinata } from "@/utils/pinataUpload";
 interface LayerUploadStepProps {
   onNext: () => void;
 }
-
-// ----------------------------------------------------------------------
-// FIX: Combine environment variable fetching and fallback logic into a single constant.
-// This resolves the TS6133 warning by removing the unused RENDER_API_URL variable.
-const API_BASE_URL =
-  import.meta.env.VITE_RENDER_API_URL || "http://localhost:10000/api";
-// ----------------------------------------------------------------------
 
 const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -142,17 +134,21 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
       });
 
       // Add metadata for the collection
-      const metadata = JSON.stringify({ 
+      const metadata = JSON.stringify({
         name: `${collectionName}-traits-${Date.now()}`,
-        description: `Trait assets for ${collectionName}` 
+        description: `Trait assets for ${collectionName}`,
       });
       formData.append("pinataMetadata", metadata);
 
       // 2a. Upload to Pinata
-      setUploadMessage("2/2: Finalizing assets and generating IPFS references...");
+      setUploadMessage(
+        "2/2: Finalizing assets and generating IPFS references..."
+      );
       const result = await pinFileOrDirectoryToPinata(formData);
 
-      console.log(`Trait assets uploaded to Pinata. IPFS Hash: ${result.IpfsHash}`);
+      console.log(
+        `Trait assets uploaded to Pinata. IPFS Hash: ${result.IpfsHash}`
+      );
 
       // 2b. Store the baseCid from Pinata response in each layer for future reference
       const layersWithCid = initialLayers.map((layer) => ({
@@ -171,8 +167,8 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
     } catch (err) {
       console.error("Trait upload error:", err);
       setUploadError(
-        err instanceof Error 
-          ? `Upload Failed: ${err.message}` 
+        err instanceof Error
+          ? `Upload Failed: ${err.message}`
           : "Upload failed. Check your Pinata configuration and console logs."
       );
     } finally {

@@ -195,14 +195,29 @@ const GenerationStatusStep: React.FC<GenerationStatusStepProps> = () => {
       });
 
       // Construct CollectionConfig from store data
+      // Transform Layer[] to TraitLayer[] with required properties
+      const traitLayers = layers.map((layer) => ({
+        name: layer.name,
+        order: layer.order,
+        totalWeight: layer.traits.reduce((sum, trait) => sum + trait.rarity, 0),
+        variants: layer.traits.map((trait) => ({
+          name: trait.name,
+          fileName: `${trait.name}.png`,
+          assetId: trait.assetId || "",
+          weight: trait.rarity,
+          rarityPercent: trait.rarity,
+        })),
+      }));
+
       const collectionConfig: CollectionConfig = {
         id: jobId,
         name: collectionName,
         symbol: "GEN", // Default symbol
-        supply: supply,
-        layers: layers,
+        size: supply,
+        layers: traitLayers,
         metadataBaseUri: "",
         creatorAddress: stxAddress || "",
+        isConfigured: true,
       };
 
       // Trigger the serverless generation function
