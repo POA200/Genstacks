@@ -4,7 +4,8 @@ import { create } from 'zustand';
 
 export interface Trait { // <-- ADD export
   name: string; 
-  rarity: number; 
+  rarity: number;
+  assetId?: string; // IPFS path or asset identifier from Pinata
 }
 
 export interface Layer { // <-- ADD export

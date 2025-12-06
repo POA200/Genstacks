@@ -7,6 +7,7 @@ import axios from 'axios';
 // --- CONFIGURATION ---
 const PINATA_JWT = import.meta.env.VITE_PINATA_JWT;
 const UPLOAD_URL = import.meta.env.VITE_PINATA_UPLOAD_URL; // Should be https://uploads.pinata.cloud/v3/files
+const PINATA_API_URL = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
 
 /**
  * Uploads a single file (trait image) to Pinata and returns the IPFS CID.
@@ -65,5 +66,43 @@ export const uploadTraitFile = async (
         console.error("General Pinata Upload Error:", error);
     }
     throw new Error(`Failed to upload trait file: ${traitName}. Check console for details.`);
+  }
+};
+
+/**
+ * Pins a file or directory (via FormData) directly to Pinata using the pinFileToIPFS endpoint.
+ * This function uploads trait assets as a collection to preserve directory structure.
+ * @param data FormData containing the file(s) and metadata.
+ * @returns The Pinata response containing the IPFS hash (IpfsHash).
+ */
+export const pinFileOrDirectoryToPinata = async (data: FormData): Promise<{ IpfsHash: string; PinSize: number }> => {
+  if (!PINATA_JWT) {
+    throw new Error("Pinata JWT (VITE_PINATA_JWT) is not configured in environment variables.");
+  }
+
+  try {
+    const response = await axios.post(PINATA_API_URL, data, {
+      maxBodyLength: Infinity, // Important for large uploads
+      headers: {
+        // Pinata uses 'Authorization: Bearer <JWT>'
+        'Authorization': `Bearer ${PINATA_JWT}`,
+        // Axios handles the Content-Type: multipart/form-data for FormData automatically
+      },
+      timeout: 120000, // 2 minutes for directory uploads
+    });
+
+    // Pinata API returns 200 on success with the hash
+    if (response.status !== 200 || !response.data?.IpfsHash) {
+      throw new Error(`Pinata upload failed with status ${response.status}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Pinata Upload Error:", error.response?.data || error.message);
+    } else {
+      console.error("Pinata Upload Error:", error);
+    }
+    throw new Error(`Failed to upload assets to Pinata: ${error instanceof Error ? error.message : 'Check console logs.'}`);
   }
 };

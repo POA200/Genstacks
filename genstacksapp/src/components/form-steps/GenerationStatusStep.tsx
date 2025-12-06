@@ -32,13 +32,15 @@ const FEE_CONTRACT_ID =
   "ST16R99CR18X1A20JBV0N546BH07HGWMKBRTCRK90.nft-fee-collector";
 
 // Vercel Serverless Function URL
-const GENERATE_API_URL = '/api/generate';
+const GENERATE_API_URL = "/api/generate";
 
 /**
  * Sends the collection configuration to the serverless function to begin computation.
  * @param config The full CollectionConfig object.
  */
-const triggerServerlessGeneration = async (config: CollectionConfig): Promise<void> => {
+const triggerServerlessGeneration = async (
+  config: CollectionConfig
+): Promise<void> => {
   console.log(`Sending config for generation: ${config.id}`);
   try {
     const response = await axios.post(GENERATE_API_URL, {
@@ -50,11 +52,15 @@ const triggerServerlessGeneration = async (config: CollectionConfig): Promise<vo
       console.log("Generation started with CID:", response.data.downloadId);
     } else {
       console.error("Failed to trigger serverless function:", response.data);
-      throw new Error("Error: Generation service failed to start. Check server logs.");
+      throw new Error(
+        "Error: Generation service failed to start. Check server logs."
+      );
     }
   } catch (error) {
     console.error("Network error during serverless API call:", error);
-    throw new Error("Fatal Error: Could not connect to the generation service.");
+    throw new Error(
+      "Fatal Error: Could not connect to the generation service."
+    );
   }
 };
 

@@ -16,6 +16,7 @@ import axios from "axios";
 import { Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
+import { pinFileOrDirectoryToPinata } from "@/utils/pinataUpload";
 
 interface LayerUploadStepProps {
   onNext: () => void;
@@ -71,8 +72,9 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
     if (!stxAddress) {
       setUploadError("Wallet not connected.");
       return;
-    } // --- 1. Client-Side Validation and Grouping ---
+    }
 
+    // --- 1. Client-Side Validation and Grouping ---
     const layerMap = new Map<string, { files: File[]; order: number }>();
     const fileList = Array.from(files);
 
@@ -109,7 +111,9 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
       );
       setIsUploading(false);
       return;
-    } // Create the initial Layer array for the Zustand store
+    }
+
+    // Create the initial Layer array for the Zustand store
     const initialLayers: Layer[] = Array.from(layerMap.entries()).map(
       ([name, data]) => ({
         id: name.toLowerCase().replace(/\s/g, "-"),
@@ -120,41 +124,57 @@ const LayerUploadStep: React.FC<LayerUploadStepProps> = ({ onNext }) => {
           rarity: 100 / data.files.length,
         })),
       })
-    ); // --- 2. Request S3 Upload Config from Render Backend & Upload ---
+    );
 
+    // --- 2. Direct Upload to Pinata (No Render Backend) ---
     setIsUploading(true);
     setUploadError(null);
-    setUploadMessage("1/2: Securing upload path and saving job details...");
+    setUploadMessage("1/2: Uploading trait assets directly to Pinata...");
 
-    const jobId = crypto.randomUUID();
     try {
-      // Use API_BASE_URL for the post request
-      const { data } = await axios.post(
-        `${API_BASE_URL}/generate-s3-upload-config`,
-        {
-          jobId,
-          collectionName,
-          userId: stxAddress,
-          layerNames: Array.from(layerMap.keys()),
-        }
-      ); // Destructure to safely access the properties
+      // Construct FormData for Pinata with directory structure preserved
+      const formData = new FormData();
 
-      const { uploadUrl, s3BaseKey } = data; // Use the variables to prevent TS6133 warnings
-      console.log(
-        `Job S3 base key assigned: ${s3BaseKey}. Upload URL: ${uploadUrl}`
-      ); // 2b. Execute Direct-to-S3 Upload (MOCK)
-      setUploadMessage(
-        `2/2: Uploading ${fileList.length} files directly to S3...`
-      );
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Add all files with their full path (webkitRelativePath preserves folder structure)
+      fileList.forEach((file) => {
+        // Append file with webkitRelativePath as the key to preserve directory structure
+        formData.append("file", file, file.webkitRelativePath);
+      });
 
-      setLayers(initialLayers); // Store the detected layers
+      // Add metadata for the collection
+      const metadata = JSON.stringify({ 
+        name: `${collectionName}-traits-${Date.now()}`,
+        description: `Trait assets for ${collectionName}` 
+      });
+      formData.append("pinataMetadata", metadata);
+
+      // 2a. Upload to Pinata
+      setUploadMessage("2/2: Finalizing assets and generating IPFS references...");
+      const result = await pinFileOrDirectoryToPinata(formData);
+
+      console.log(`Trait assets uploaded to Pinata. IPFS Hash: ${result.IpfsHash}`);
+
+      // 2b. Store the baseCid from Pinata response in each layer for future reference
+      const layersWithCid = initialLayers.map((layer) => ({
+        ...layer,
+        traits: layer.traits.map((trait) => ({
+          ...trait,
+          // Store the IPFS path for each trait file
+          assetId: `${result.IpfsHash}/${collectionName}/${layer.name}/${trait.name}`,
+        })),
+      }));
+
+      setLayers(layersWithCid); // Store the detected layers
       setUploadMessage(
         "Upload complete! Layers detected, ordered, and ready for rarity configuration."
       );
     } catch (err) {
-      console.error(err);
-      setUploadError("Upload failed or Render API error. Check the console.");
+      console.error("Trait upload error:", err);
+      setUploadError(
+        err instanceof Error 
+          ? `Upload Failed: ${err.message}` 
+          : "Upload failed. Check your Pinata configuration and console logs."
+      );
     } finally {
       setIsUploading(false);
     }
