@@ -40,8 +40,8 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
 
   return (
-    <div className={cn("pb-12", className)}>
-      <ScrollArea className="h-[calc(100vh-3.5rem)] py-6 pr-6 lg:py-8">
+    <div className={cn("pb-12 px-3 sm:px-4", className)}>
+      <ScrollArea className="h-[calc(100vh-3.5rem)] py-6 px-2 sm:px-3 lg:py-8">
         <div className="space-y-4">
           {sidebarNav.map((section) => (
             <div key={section.href}>

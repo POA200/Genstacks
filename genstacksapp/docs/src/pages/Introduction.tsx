@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function Introduction() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-3 sm:px-5">
       <div className="space-y-2">
         <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">
           GENSTACKS Documentation

@@ -7,10 +7,18 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import {
+  Layers,
+  Cpu,
+  Lock,
+  Settings,
+  Activity,
+  BadgeCheck,
+} from "lucide-react";
 
 export function Components() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-3 sm:px-5">
       <div className="space-y-2">
         <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">
           Architecture
@@ -27,10 +35,13 @@ export function Components() {
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
           System Architecture
         </h2>
-        <div className="space-y-6 md:grid md:grid-cols-3 md:gap-6 md:space-y-0">
+        <div className="space-y-6 md:grid md:grid-cols-1 md:gap-6 md:space-y-0">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Frontend Layer</CardTitle>
+              <div className="flex items-center gap-2">
+                <Layers className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Frontend Layer</CardTitle>
+              </div>
               <CardDescription>Client Application</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -51,7 +62,10 @@ export function Components() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Compute Layer</CardTitle>
+              <div className="flex items-center gap-2">
+                <Cpu className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Compute Layer</CardTitle>
+              </div>
               <CardDescription>Serverless Functions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -71,7 +85,10 @@ export function Components() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Blockchain Layer</CardTitle>
+              <div className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Blockchain Layer</CardTitle>
+              </div>
               <CardDescription>Smart Contracts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -97,10 +114,15 @@ export function Components() {
         </h2>
         <div className="space-y-3">
           <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-semibold text-foreground mb-2">
+            <CardHeader>
+              <Settings className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardTitle>
+              <h3 className="font-semibold text-foreground pl-6">
                 Rarity Control Engine
               </h3>
+            </CardTitle>
+            <CardContent>
               <p className="text-sm text-foreground/80 font-sans">
                 Advanced collision handling with max retry limits and
                 user-defined exclusion rules to prevent duplicate trait
@@ -108,22 +130,35 @@ export function Components() {
               </p>
             </CardContent>
           </Card>
+
+
           <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-semibold text-foreground mb-2">
+            <CardHeader>
+               <Activity className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardTitle>
+              <h3 className="font-semibold text-foreground pl-6">
                 Real-Time Status System
               </h3>
+            </CardTitle>
+            <CardContent>
               <p className="text-sm text-foreground/80 font-sans">
                 Polling mechanism with live progress updates and status tracking
                 for collection generation process.
               </p>
             </CardContent>
           </Card>
+
           <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-semibold text-foreground mb-2">
+            <CardHeader>
+              <BadgeCheck className="h-5 w-5 text-primary" />
+            </CardHeader>
+            <CardTitle>
+              <h3 className="font-semibold text-foreground pl-6">
                 Payment & Licensing
               </h3>
+            </CardTitle>
+            <CardContent>
               <p className="text-sm text-foreground/80 font-sans">
                 50 STX fee via Clarity smart contracts with fraud prevention and
                 duplicate payment mitigation.

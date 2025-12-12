@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
 import { ModeToggle } from "./mode-toggle";
-import { Button } from "./ui/button";
-import { Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -25,9 +22,7 @@ export function Header() {
           <div className="mr-4 flex">
             <Link to="/" className="mr-6 flex items-center space-x-2">
               <img src={GenStacksLogo} alt="GenStacks" className="h-10 w-10" />
-              <span className="font-bold text-xl hidden sm:inline">
-                GenStacks
-              </span>
+              <span className="font-bold text-lg sm:text-xl">GenStacks</span>
             </Link>
           </div>
 
@@ -51,29 +46,7 @@ export function Header() {
 
           <div className="flex flex-1 items-center justify-end space-x-2">
             <ModeToggle />
-
-            {/* Mobile Navigation */}
-            <Sheet>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <nav className="flex flex-col space-y-4 mt-4">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className="text-sm font-medium transition-colors hover:text-primary"
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
+            {/* Mobile Navigation removed */}
           </div>
         </div>
       </div>

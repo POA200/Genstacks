@@ -33,7 +33,7 @@ export function Installation() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-3 sm:px-5">
       <div className="space-y-2">
         <h1 className="scroll-m-20 text-4xl font-bold tracking-tight">
           Key Features
@@ -50,13 +50,13 @@ export function Installation() {
         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
           Platform Features
         </h2>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-1">
           {features.map((feature, idx) => (
-            <Card key={idx}>
+            <Card key={idx} className="flex h-full flex-col">
               <CardHeader>
                 <CardTitle className="text-lg">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1">
                 <p className="text-foreground/80 font-sans">
                   {feature.description}
                 </p>
@@ -67,16 +67,16 @@ export function Installation() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-wider">
           Technology Stack
         </h2>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-1">
           <Card>
             <CardHeader>
               <CardTitle>Frontend</CardTitle>
               <CardDescription>Client Layer</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {["React", "TypeScript", "TailwindCSS", "Shadcn UI"].map(
                   (tech) => (
@@ -93,12 +93,12 @@ export function Installation() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex h-full flex-col">
             <CardHeader>
               <CardTitle>Compute</CardTitle>
               <CardDescription>Serverless Layer</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {["Vercel Functions", "Node.js", "Sharp.js", "JSZip"].map(
                   (tech) => (
@@ -114,12 +114,12 @@ export function Installation() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex h-full flex-col">
             <CardHeader>
               <CardTitle>Blockchain</CardTitle>
               <CardDescription>Smart Contracts</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 space-y-4">
               <div className="flex flex-wrap gap-2">
                 {["Stacks", "Clarity", "STX"].map((tech) => (
                   <Badge key={tech} variant="secondary">
